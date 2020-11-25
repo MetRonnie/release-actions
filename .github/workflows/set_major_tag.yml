@@ -1,0 +1,61 @@
+name: Auto update major tag
+
+# Make it so that e.g. the v1 branch is always pointing to the latest v1.x tag
+# Note: using branch instead of tag, as that's easier to push
+
+on:
+  push:
+    tags:
+    - v*
+
+jobs:
+  set-tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+
+    - name: Checkout repo
+      uses: actions/checkout@v2
+
+    - name: Configure git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install utils
+      shell: bash
+      run: python3 -m pip install -q packaging
+
+    - name: Get existing tags
+      id: get-existing
+      run: |
+        git
+
+    - name: Get major tag version
+      id: get-version
+      shell: python
+      run: |
+        from packaging import version
+
+        tag_ref = "${{ github.ref }}"
+        tag = tag_ref.split("/")[-1]
+        ver = version.Version(tag)
+        print(f"tag: {tag}")
+        print(f"version: {ver}")
+        if ver.is_prerelease:
+            print("::warning::No tag created (dev or pre version)")
+            exit(0)
+        print(f"::set-output name=major_tag::v{ver.major}")
+
+    - name: Push branch
+      if: steps.get-version.outputs.major_tag != ''
+      env:
+        BRANCH_NAME: ${{ steps.get-version.outputs.major_tag }}
+      run: |
+        git checkout -b "$BRANCH_NAME"
+        git push -f
