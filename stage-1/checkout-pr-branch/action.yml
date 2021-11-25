@@ -1,22 +1,43 @@
 name: Create & checkout PR branch
-description: Creates branch named "prepare-<version>". Also sets GitHub Actions bot as author.
+description: Checkout repo, create branch named "prepare-<version>".
 inputs:
+  version:
+    description: Version number of the release. If this is not set, will use the workflow_dispatch event version input instead.
+    required: false
   prefix:
     description: Set this to override the default branch name prefix "prepare-"
     required: false
     default: 'prepare-'
-  version:
-    description: Version number of the release. If this is not set, will use the env var VERSION instead.
+  python-version:
+    description: Version of Python to use on the GH Actions runner.
     required: false
+    default: '3.9' # Pinned because pyuv is incompatible with 3.10
 # env outputs:
+  # VERSION: The version
+  # BASE_REF: The branch against which the PR is being created
   # HEAD_REF: The PR branch name
 runs:
   using: composite
   steps:
+    - name: Sanitise workflow inputs
+      working-directory: ${{ github.action_path }} # FIXME: doesn't work with `uses`
+      uses: ../sanitize-inputs
+      # Sets $VERSION and $BASE_REF
+
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ env.BASE_REF }}
+        fetch-depth: 0  # need to fetch all commits to check contributors
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ inputs.python-version }}
+
     - name: Configure git
-      working-directory: ${{ github.action_path }}
       shell: bash
-      run: ../../configure-git/configure-git.sh
+      run: ${{ github.action_path }}/../../configure-git/configure-git.sh
 
     - name: Create & checkout PR branch
       shell: bash
