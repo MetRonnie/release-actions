@@ -1,0 +1,30 @@
+name: Towncrier build
+description: Build towncrier fragments into the changelog file.
+inputs:
+  save-copy:
+    description: Save a copy of the built changelog section and upload as artifact.
+    required: false
+    default: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: python3 -m pip install -q towncrier
+
+    - name: Save copy
+      if: inputs.save-copy == 'true'
+      # ^ string comparison needed due to https://github.com/actions/runner/issues/2238
+      shell: bash
+      run: |
+        towncrier build --draft > "${RUNNER_TEMP}/changelog.md"
+
+    - name: Upload artifact
+      if: inputs.save-copy == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: changelog
+        path: "${{ runner.temp }}/changelog.md"
+
+    - name: Build
+      shell: bash
+      run: towncrier build --yes

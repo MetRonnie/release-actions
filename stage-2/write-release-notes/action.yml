@@ -1,0 +1,40 @@
+name: Create release notes
+description: Write body for the GitHub release.
+inputs:
+  header:
+    description: An optional header for the release notes.
+    required: false
+    default: ''
+  footer:
+    description: An optional footer for the release notes.
+    required: false
+    default: ''
+outputs:
+  filepath:
+    description: The path to the release notes file.
+    value: ${{ runner.temp }}/release-notes.md
+runs:
+  using: composite
+  steps:
+    - name: Download changelog artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: changelog
+        path: ${{ runner.temp }}
+
+    - name: Write release notes
+      shell: bash
+      run: |
+        FILE="${RUNNER_TEMP}/release-notes.md"
+
+        if [[ -n "$INPUT_HEADER" ]]; then
+          echo "$INPUT_HEADER" >> "$FILE"
+          echo "" >> "$FILE""
+        fi
+
+        cat "${RUNNER_TEMP}/changelog.md" >> "$FILE"
+
+        if [[ -n "$INPUT_FOOTER" ]]; then
+          printf "\n\n---\n\n" >> "$FILE"
+          echo "$INPUT_FOOTER" >> "$FILE"
+        fi
