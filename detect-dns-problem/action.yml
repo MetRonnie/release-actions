@@ -1,0 +1,23 @@
+name: Detect DNS problem
+description: Reverse lookup can be broken on some MacOS runners - https://github.com/actions/runner-images/issues/8649
+
+outputs:
+  problem:
+    description: 'true if reverse lookup is broken on this runner'
+    value: ${{ steps.check.outputs.problem }}
+
+runs:
+  using: composite
+  steps:
+    - id: check
+      shell: python
+      run: |
+        import os
+        import socket
+        try:
+          socket.gethostbyname_ex(socket.getfqdn())
+        except socket.gaierror:
+          print('::warning::DNS problem detected (https://github.com/actions/runner-images/issues/8649)')
+          # Set github actions output on this step:
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            print('problem=true', file=f)
