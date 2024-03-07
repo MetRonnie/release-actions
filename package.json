@@ -1,5 +1,19 @@
 {
+    "name": "cylc-release-actions",
+    "private": true,
+    "scripts": {
+        "build": "tsc",
+        "lint": "eslint . --ext .ts,.mts,.cts,.js,.mjs,.cjs"
+    },
+    "exports": {
+        ".": "./cylc-action-utils.mts"
+    },
     "devDependencies": {
-        "eslint": "^8.45.0"
+        "@tsconfig/node20": "^20.1.2",
+        "@types/node": "^20.11.25",
+        "@typescript-eslint/eslint-plugin": "^7.1.1",
+        "@typescript-eslint/parser": "^7.1.1",
+        "eslint": "^8.57.0",
+        "typescript": "^5.4.2"
     }
 }

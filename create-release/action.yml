@@ -63,4 +63,4 @@ runs:
         IS_DRAFT: ${{ inputs.draft }}
         IS_PRERELEASE: ${{ inputs.prerelease }}
       run: |
-        node ${{ github.action_path }}/create-release.js
+        node ${{ github.action_path }}/create-release.mjs

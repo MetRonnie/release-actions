@@ -14,15 +14,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-const {env} = process;
-const {escSQ, execSync, setOutput} = require('cylc-action-utils');
+import {env} from 'process'
+import {escSQ, execSync, setOutput} from 'cylc-release-actions'
 
 const cmd = [
     'gh', 'release', 'create',
     env.TAG,
     `--repo '${env.REPO}'`,
     `--target '${env.TARGET}'`,
-    `--title '${escSQ(env.TITLE)}'`,
+    `--title '${escSQ(env.TITLE!)}'`,
 ]
 
 if (env.BODY) {
@@ -37,6 +37,6 @@ if (env.IS_PRERELEASE === 'true') {
     cmd.push('--prerelease')
 }
 
-const url = execSync(cmd.join(' ')).split('\n')[0]
+const url: string = execSync(cmd.join(' ')).split('\n')[0]
 
 setOutput('html_url', url)
