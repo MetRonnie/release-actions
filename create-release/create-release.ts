@@ -13,26 +13,30 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. */
-import { env } from 'process';
-import { escSQ, execSync, setOutput } from 'cylc-release-actions';
+
+import {env} from 'process'
+import {escSQ, execSync, setOutput} from 'cylc-release-actions'
+
 const cmd = [
     'gh', 'release', 'create',
     env.TAG,
     `--repo '${env.REPO}'`,
     `--target '${env.TARGET}'`,
-    `--title '${escSQ(env.TITLE)}'`,
-];
+    `--title '${escSQ(env.TITLE!)}'`,
+]
+
 if (env.BODY) {
-    cmd.push(`--notes '${escSQ(env.BODY)}'`);
-}
-else if (env.BODY_PATH) {
-    cmd.push(`--notes-file '${env.BODY_PATH}'`);
+    cmd.push(`--notes '${escSQ(env.BODY)}'`)
+} else if (env.BODY_PATH) {
+    cmd.push(`--notes-file '${env.BODY_PATH}'`)
 }
 if (env.IS_DRAFT === 'true') {
-    cmd.push('--draft');
+    cmd.push('--draft')
 }
 if (env.IS_PRERELEASE === 'true') {
-    cmd.push('--prerelease');
+    cmd.push('--prerelease')
 }
-const url = execSync(cmd.join(' ')).split('\n')[0];
-setOutput('html_url', url);
+
+const url: string = execSync(cmd.join(' ')).split('\n')[0]
+
+setOutput('html_url', url)

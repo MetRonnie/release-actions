@@ -13,19 +13,28 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 // Helpers for NodeJS steps in GitHub Actions
-import { env } from 'process';
-import { execSync as nodeExecSync } from 'child_process';
-import { writeFileSync } from 'fs';
-const nodeExecSyncOpts = {
+
+import {env} from 'process'
+import {
+    type ExecSyncOptionsWithStringEncoding,
+    execSync as nodeExecSync
+} from 'child_process'
+import {writeFileSync} from 'fs'
+
+const nodeExecSyncOpts: ExecSyncOptionsWithStringEncoding = {
     stdio: 'pipe',
     encoding: 'utf8',
-};
-export const curlOpts = '--silent --fail --show-error';
-/** Escape single quotes in string */
-export function escSQ(str) {
-    return str.replace(/'/g, "&apos;");
 }
+
+export const curlOpts: string = '--silent --fail --show-error'
+
+/** Escape single quotes in string */
+export function escSQ(str: string): string {
+    return str.replace(/'/g, "&apos;")
+}
+
 /**
  * Node's execSync() but with improved logging
  *
@@ -33,12 +42,11 @@ export function escSQ(str) {
  * @param options
  * @return stdout
  */
-export function execSync(cmd, options = {}) {
-    let stdout;
+export function execSync(cmd: string, options: { quiet?: boolean, verbose?: boolean } = {}): string {
+    let stdout: string
     try {
         stdout = nodeExecSync(cmd, nodeExecSyncOpts);
-    }
-    catch (err) {
+    } catch (err: any) {
         console.log(`::error:: ${err.stderr ? err.stderr : 'Error executing command'}`);
         throw err.message;
     }
@@ -49,8 +57,7 @@ export function execSync(cmd, options = {}) {
         console.log(`[command]${cmd}`);
         try {
             console.log(JSON.stringify(JSON.parse(stdout), null, 2));
-        }
-        catch (err) {
+        } catch (err) {
             console.log(stdout);
         }
         if (!options.verbose) {
@@ -59,15 +66,18 @@ export function execSync(cmd, options = {}) {
     }
     return stdout;
 }
+
 /** Set an environment variable for later steps in a workflow to use */
-export function setEnv(name, value) {
-    writeFileSync(env.GITHUB_ENV, `${name}=${value}\n`, { flag: 'a' });
+export function setEnv(name: string, value: string): void {
+    writeFileSync(env.GITHUB_ENV!, `${name}=${value}\n`, {flag: 'a'})
 }
+
 /** Set a step's output */
-export function setOutput(name, value) {
-    writeFileSync(env.GITHUB_OUTPUT, `${name}=${value}\n`, { flag: 'a' });
+export function setOutput(name: string, value: string): void {
+    writeFileSync(env.GITHUB_OUTPUT!, `${name}=${value}\n`, {flag: 'a'})
 }
+
 /** Add a path to $PATH */
-export function addPath(path) {
-    writeFileSync(env.GITHUB_PATH, `${path}\n`, { flag: 'a' });
+export function addPath(path: string): void {
+    writeFileSync(env.GITHUB_PATH!, `${path}\n`, {flag: 'a'})
 }

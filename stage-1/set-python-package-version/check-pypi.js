@@ -14,11 +14,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-const {execSync, curlOpts} = require('cylc-release-actions')
+import { execSync, curlOpts } from 'cylc-release-actions';
 const {env} = process;
 
 if (!env.PYPI_PACKAGE_NAME) {
-    throw `::error:: No package name supplied`;
+    throw `::error::No package name supplied`;
 }
 
 const request = `curl -X GET \
@@ -30,6 +30,6 @@ for (const release in releases) {
     console.log(`  ${release}`);
     const diff = execSync(`cmp_py_versions ${release} ${env.SETUP_PY_VERSION}`, {quiet: true});
     if (!diff) {
-        throw `::error:: ${env.SETUP_PY_VERSION} already exists on PyPI.org`;
+        throw `::error::${env.SETUP_PY_VERSION} already exists on PyPI.org`;
     }
 }

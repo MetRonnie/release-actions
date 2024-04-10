@@ -13,18 +13,31 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. */
-import { env } from 'process';
-import { readFileSync } from 'fs';
-import { escSQ, execSync, curlOpts } from 'cylc-release-actions';
+
+import {env} from 'process'
+import {readFileSync} from 'fs'
+import {escSQ, execSync, curlOpts} from 'cylc-release-actions'
+// Note: all string properties of the `github` context are available as env vars as `GITHUB_<PROPERTY>`
+// WARNING: Don't use ${env.GITHUB_TOKEN} in execSync() as that might print in log. Use `$GITHUB_TOKEN` instead.
+
+interface Milestone {
+    title: string
+    number: string
+    open_issues: string
+}
+
 if (!env.VERSION) {
     throw "::error::Environment variable `VERSION` not set";
 }
+
 const repoURL = `https://github.com/${env.GITHUB_REPOSITORY}`;
 const API_repoURL = `https://api.github.com/repos/${env.GITHUB_REPOSITORY}`;
-const github_event = JSON.parse(readFileSync(env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
+const github_event = JSON.parse(readFileSync(env.GITHUB_EVENT_PATH!, {encoding: 'utf8'}));
 const author = github_event.sender.login;
+
 const milestone = getMilestone();
 const workflowBadges = getTestWorkflowBadges();
+
 const milestoneText = () => {
     let checkbox = "[ ]";
     let note = `⚠️ Couldn't find milestone matching \`${env.VERSION}\``;
@@ -36,6 +49,7 @@ const milestoneText = () => {
     }
     return `${checkbox} Milestone complete?\n  ${note}`;
 };
+
 const bodyText = `
 ### ⚡ Merging this PR will automatically create a GitHub Release & publish the package ⚡
 
@@ -43,7 +57,7 @@ This PR was created by the \`${env.GITHUB_WORKFLOW}\` workflow, triggered by @${
 
 #### Tests:
 ${workflowBadges ? `- Tests last run on \`${env.BASE_REF}\`:\n    ${workflowBadges.join('\n    ')}` : ''}
-- ✔️ Build check passed - see the [workflow run](${repoURL}/actions?query=workflow%3A%22${encodeURIComponent(env.GITHUB_WORKFLOW)}%22) (number ${env.GITHUB_RUN_NUMBER}) for more info
+- ✔️ Build check passed - see the [workflow run](${repoURL}/actions?query=workflow%3A%22${encodeURIComponent(env.GITHUB_WORKFLOW!)}%22) (number ${env.GITHUB_RUN_NUMBER}) for more info
 
 #### Checklist:
 - ${milestoneText()}
@@ -59,6 +73,7 @@ ${workflowBadges ? `- Tests last run on \`${env.BASE_REF}\`:\n    ${workflowBadg
 > [!IMPORTANT]
 > Do **not** use \`[skip ci]\` in commit messages pushed to this PR, as it will prevent the 2nd stage release workflow from running.
 `;
+
 const cmd = [
     'gh', 'pr', 'create',
     `-R '${env.GITHUB_REPOSITORY}'`,
@@ -69,28 +84,31 @@ const cmd = [
     `-a '${author}'`,
 ];
 if (milestone) {
-    cmd.push(`-m '${milestone.title}'`);
+    cmd.push(`-m '${milestone.title}'`)
 }
 if (env.PR_LABEL) {
-    cmd.push(`-l '${env.PR_LABEL}'`);
+    cmd.push(`-l '${env.PR_LABEL}'`)
 }
+
 execSync(cmd.join(' '));
-function getMilestone() {
+
+
+function getMilestone(): Milestone | undefined {
     const request = `curl -X GET \
         ${API_repoURL}/milestones \
         -H "authorization: Bearer $GITHUB_TOKEN" \
         ${curlOpts}`;
-    let response;
+
+    let response: Milestone[]
     try {
         response = JSON.parse(execSync(request));
-    }
-    catch (err) {
+    } catch (err) {
         console.log(`::warning::Error getting milestones`);
         console.log(err, '\n');
         return;
     }
     for (const milestone of response) {
-        if (milestone.title.includes(env.VERSION)) {
+        if (milestone.title.includes(env.VERSION!)) {
             console.log('Found milestone:', milestone.title, '\n');
             return milestone;
         }
@@ -98,11 +116,12 @@ function getMilestone() {
     console.log(`::warning::Could not find milestone matching "${env.VERSION}"`);
     return;
 }
+
 function getTestWorkflowBadges() {
     if (!env.TEST_WORKFLOWS) {
-        return;
+        return
     }
-    const workflow_files = env.TEST_WORKFLOWS.split(',');
+    const workflow_files: string[] = env.TEST_WORKFLOWS.split(',');
     return Array.from(workflow_files, (file) => {
         file = file.trim();
         const baseURL = `${repoURL}/actions/workflows/${file}`;
