@@ -33,6 +33,8 @@ I have attempted to guess the next dev version.
 If it is not correct, please push to this branch.
 "
 
+set -x
+
 gh pr create -R "$GITHUB_REPOSITORY" \
     -H "$head_branch" -B "$BASE_BRANCH" -t "$title" -b "$body" -r "$REVIEWER"
 
@@ -40,6 +42,6 @@ gh pr create -R "$GITHUB_REPOSITORY" \
 gh pr edit "$head_branch" -R "$GITHUB_REPOSITORY" --add-label 'small' || true
 
 # Go back to original commit
-set -x
 git checkout "$GITHUB_SHA"
+
 set +x

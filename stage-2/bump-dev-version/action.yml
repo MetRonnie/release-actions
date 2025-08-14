@@ -60,16 +60,15 @@ runs:
         BRANCH: ${{ steps.guess.outputs.bugfix-branch }}
       run: |
         set -x
-        if git branch "$BRANCH"; then
-          git push origin "$BRANCH"
-        fi
+        git branch "$BRANCH"
+        git push origin "$BRANCH"
 
     - name: Create PR for micro/bugfix bump
       shell: bash
       env:
         BASE_BRANCH: ${{ steps.guess.outputs.bugfix-branch || github.event.pull_request.base.ref }}
         VERSION: ${{ steps.guess.outputs.new-micro }}
-      run: ${{ github.action_path}}/create-pr.sh
+      run: ${{ github.action_path }}/create-pr.sh
 
     - name: Create PR for minor bump
       if: ${{ steps.guess.outputs.new-minor }}
@@ -77,4 +76,4 @@ runs:
       env:
         BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         VERSION: ${{ steps.guess.outputs.new-minor }}
-      run: ${{ github.action_path}}/create-pr.sh
+      run: ${{ github.action_path }}/create-pr.sh
