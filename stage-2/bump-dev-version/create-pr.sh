@@ -39,7 +39,7 @@ gh pr create -R "$GITHUB_REPOSITORY" \
 # Add 'small' label if it exists, else no worries
 gh pr edit "$head_branch" -R "$GITHUB_REPOSITORY" --add-label 'small' || true
 
-# Go back to original branch
+# Go back to original commit
 set -x
-git checkout "$GITHUB_REF_NAME"
+git checkout "$GITHUB_SHA"
 set +x
