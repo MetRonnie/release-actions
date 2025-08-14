@@ -56,7 +56,7 @@ runs:
       id: bugfix-branch
       shell: bash
       env:
-        PS4: '[command]'
+        PS4: '+ \[\033[0;34m\]' # blue to stand out in logs
         BRANCH: ${{ steps.guess.outputs.bugfix-branch }}
       run: |
         set -x

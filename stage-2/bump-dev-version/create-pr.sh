@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-export PS4='[command]'
+export PS4='+ \[\033[0;34m\]' # blue to stand out in logs
 
 head_branch="bump-${VERSION}"
 
@@ -8,7 +8,7 @@ head_branch="bump-${VERSION}"
 pattern="(__version__ ?= ?['\"]).*(['\"])"
 sed -i -E "s/${pattern}/\1${VERSION}\2/" "$INIT_FILE"
 
-if [[ -z $(git diff --stat -- "$INIT_FILE") ]]; then
+if git diff --quiet -- "$INIT_FILE"; then
     echo "::error::No changes to ${INIT_FILE} occurred"
     exit 1
 fi
